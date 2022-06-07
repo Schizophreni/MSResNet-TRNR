@@ -1,6 +1,6 @@
 from utils.arguments import get_args
 from ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
-from nets import *
+from nets import MetaMSResNet
 from metaunit import MetaUnit
 from ImgLIPDset import TestDataset
 args = get_args()

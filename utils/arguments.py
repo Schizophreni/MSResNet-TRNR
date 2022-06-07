@@ -36,7 +36,7 @@ def get_args():
     parser.add_argument('--k_shot', type=int, help='K shot', default=1)
     parser.add_argument('--k_query', type=int, help='K query', default=1)
     parser.add_argument('--root_dir', type=str, help='root img dir', default='/home/rw/Public/datasets/derain/Rain800-80-multi-merge')
-    parser.add_argument('--patch_size', type=int, help='image patch size', default=50)
+    parser.add_argument('--patch_size', type=int, help='image patch size', default=64)
     parser.add_argument('--enable_inner_loop_optimizable_bn_params', type=bool, default=True)
     parser.add_argument('--init_inner_loop_learning_rate', type=float, help='initial inner loop learning rate', default=0.001)
     parser.add_argument('--learnable_per_layer_per_step_inner_loop_lr', type=bool, default=False)

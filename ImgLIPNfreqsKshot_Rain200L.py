@@ -143,7 +143,7 @@ class ImgLIPNfreqsKshot:
         qyrsz = self.k_query * self.n_freqs
         data_cache = []
 
-        for episode in range(20):
+        for episode in range(1):
             spts_x, spts_y, qrys_x, qrys_y = [], [], [], []
             selected_freqs_each_eposide = np.random.choice(len(dset), (self.n_freqs + 1) * self.batch_size,
                                                            replace=False)
@@ -157,6 +157,8 @@ class ImgLIPNfreqsKshot:
                 ### use another strategy to sample support and query data
                 # selected_freqs = np.random.choice(len(dset), self.n_freqs+1, False)  ## choose n_freqs*2, n_freqs for support, n_freqs for query
                 # print(selected_freqs)
+                # aug_idx = np.random.choice(self.repeat_times)
+                # print(aug_idx)
                 for label, freq in enumerate(selected_freqs[:-1]):
                     imgs_path = dset[freq]
                     selected_imgs = np.random.choice(imgs_path, self.k_shot + self.k_query, False)
@@ -172,6 +174,7 @@ class ImgLIPNfreqsKshot:
                     if label < self.n_freqs - 1:
                         for index, img in enumerate(selected_imgs[self.k_shot:]):
                             aug_idx = np.random.choice(self.repeat_times)
+                            # aug_idx = np.random.choice(self.repeat_times)
                             noise_img = img.replace('clean', 'rain').replace('.png', 'x{}.png'.format(aug_idx + 1))
                             qry_y[label * self.k_query + index, ...], qry_x[
                                 label * self.k_query + index, ...] = self._tuple_trans(clean_img=img,
@@ -228,17 +231,18 @@ def clean2noisy(x, sigmas):
 
 
 def main():
-    import time
-    import torch
+    import random
     import matplotlib.pyplot as plt
-    root_dir = 'D:/MetaLIP/data/ProcessData/Rain14000-2-multi/start-0'
-    bsz = 3
-    n_freqs = 5
+    random.seed(0)
+    np.random.seed(0)
+    root_dir = 'D:/MetaLIP/data/Rain200H-100x6/Rain200H-100x6/ProcessData'
+    bsz = 4
+    n_freqs = 6
     k_shot = 1
     k_query = 1
     db = ImgLIPNfreqsKshot(root_dir=root_dir, batch_size=bsz, n_freqs=n_freqs, k_shot=k_shot, k_query=k_query,
-                           patch_size=64, dataset_name='Rain14000')
-    spts_x, spts_y, qrys_x, qrys_y = db.next(mode='test')
+                           patch_size=64, dataset_name='Rain200L')
+    spts_x, spts_y, qrys_x, qrys_y = db.next(mode='train')
     print(spts_x.shape, spts_y.shape)
     print(qrys_x.shape, qrys_y.shape)
 

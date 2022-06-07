@@ -11,12 +11,12 @@ Override module:
 import torch.nn as nn
 import torch.nn.functional as F
 import torch 
-import numpy as np
+# import numpy as np
 from copy import copy
 from functools import reduce
-from torch.nn.modules import padding
+# from torch.nn.modules import padding
+from feature_vis import show_feature
 
-from torch.types import Number
 
 def extract_top_level_dict(current_dict):
     """
@@ -165,6 +165,7 @@ class MetaMAEB(nn.Module):
         if self.withSE:
             out = self.layer_dict['se'].forward(out, params=param_dict['se'])
         out = x[:,:self.num_filters,:,:] + out
+        show_feature(out, layer_name='maeb')
         return out
 
 class MetaMSFUSEV3(nn.Module):
@@ -846,15 +847,6 @@ class MetaRes(nn.Module):
         self.layer_dict['cbr2'] = MetaConvBNPReLU(num_filters, num_filters, args, activation=True, withSE=False)
         self.layer_dict['cbr3'] = MetaConvBNPReLU(num_filters, num_filters, args, activation=True, withSE=False)
         self.layer_dict['cbr4'] = MetaConvBNPReLU(num_filters, num_filters, args, activation=True, withSE=False)
-        #self.layer_dict['cbr1'] = MetaConvBNLReLU(num_filters, num_filters, 3, 1, 1, args, negative_slope=0.2,
-        #                                             activation=True, withSE=withSE)
-        #self.layer_dict['cbr2'] = MetaConvBNLReLU(num_filters, num_filters, 3, 1, 1, args, negative_slope=0.2,
-        #                                             activation=True, withSE=withSE)
-        #self.layer_dict['cbr3'] = MetaConvBNLReLU(num_filters, num_filters, 3, 1, 1, args, negative_slope=0.2,
-        #                                             activation=True, withSE=withSE)
-        #self.layer_dict['cbr4'] = MetaConvBNLReLU(num_filters, num_filters, 3, 1, 1, args, negative_slope=0.2,
-        #                                             activation=True, withSE=withSE)
-                                                     
 
         self.layer_dict['trans'] = MetaConv2dLayer(num_filters, num_filters, 3, 1, 1, use_bias=False)
         self.layer_dict['bn'] = MetaBNLayer(num_filters, args, eps=1e-5,

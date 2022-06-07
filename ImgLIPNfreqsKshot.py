@@ -96,16 +96,14 @@ class ImgLIPNfreqsKshot:
         else:
             self.root_dirs = os.listdir(self.root_dir)
     
-
-
     def _tuple_trans(self, clean_img, noise_img):
         clean_img = Image.open(clean_img)# .convert('L') ## this accords with cv2.cvtColor(src, cv2.COLOR_BGR2GRAY) but not with cv2.imread(src, cv2.IMREAD_GRAYSCALE)
         noise_img = Image.open(noise_img)
         data_aug = np.random.choice(4)
         if data_aug == 1:
-            clean_img = clean_img.rotate(180)
+            clean_img = np.array(clean_img)[::-1, ::-1, :]
             # clean_img = np.array(clean_img)
-            noise_img = noise_img.rotate(180)
+            noise_img = np.array(noise_img)[::-1, ::-1, :]
         elif data_aug == 2:
             clean_img = np.array(clean_img)[::-1, :, ...]
             noise_img = np.array(noise_img)[::-1, :, ...]
@@ -115,8 +113,6 @@ class ImgLIPNfreqsKshot:
         else:
             clean_img = np.array(clean_img)
             noise_img = np.array(noise_img)
-        # if clean_img.ndim == 2:
-        #     clean_img = np.expand_dims(clean_img, -1)
         clean_img = np.transpose(clean_img, (2, 0, 1))
         clean_img = clean_img/255.0
         noise_img = np.transpose(noise_img, (2, 0, 1))
@@ -128,13 +124,13 @@ class ImgLIPNfreqsKshot:
         store several batches for N-freqs learning
         :param dset: dict of (label: img1, img2, ...)
         :return: a list with [spt_set_x, spt_set_y, qry_set_x, qry_set_y]
-        :store 10 batches data for meta learning training or testing 
+        :store 20 batches data for meta learning training or testing
         """
         setsz = self.k_shot*self.n_freqs
         qyrsz = self.k_query*self.n_freqs
         data_cache = []
-        
-        for episode in range(20):
+
+        for episode in range(1):
             spts_x, spts_y, qrys_x, qrys_y = [], [], [], []
             selected_freqs_each_eposide = np.random.choice(len(dset), (self.n_freqs+1)*self.batch_size, replace=False)
             for batch in range(self.batch_size):
@@ -158,34 +154,24 @@ class ImgLIPNfreqsKshot:
                     if label < self.n_freqs-1:
                         for index, img in enumerate(selected_imgs[self.k_shot:]):
                             qry_y[label*self.k_query+index, ...],qry_x[label*self.k_query+index, ...] = self._tuple_trans(clean_img=img, noise_img=img.replace('clean', 'rain'))
-                
+
                 remain_imgs = np.random.choice(dset[selected_freqs[-1]], self.k_query, False)
                 label = self.n_freqs-1
                 for index, img in enumerate(remain_imgs):
                     qry_y[label*self.k_query+index, ...],qry_x[label*self.k_query+index, ...]= self._tuple_trans(clean_img=img, noise_img=img.replace('clean', 'rain'))
-                '''
-                spt_rains = spt_x - spt_y
-                qry_rains = qry_x - qry_y
-                # print(type(spt_x), type(spt_y), type(qry_x), type(qry_y))
-                mask = np.random.randint(0, 2, setsz).reshape((setsz, 1, 1, 1))
-                
-                prob = np.random.rand()*0.3
-                spt_x = spt_y + spt_rains*(1-prob) + prob*(spt_rains*mask + (1-mask)*qry_rains)
-                # qry_x = qry_y + spt_rains*(1-mask) + mask*qry_rains
-                '''
-                
+
                 spts_x.append(spt_x)
                 spts_y.append(spt_y)
                 qrys_x.append(qry_x)
                 qrys_y.append(qry_y)
-            
+
             spts_x = np.array(spts_x).astype('f4') ## [b, setsz, c, h, w]
             spts_y = np.array(spts_y).astype('f4')
             qrys_x = np.array(qrys_x).astype('f4')
             qrys_y = np.array(qrys_y).astype('f4')
             data_cache.append([spts_x, spts_y, qrys_x, qrys_y])
         return data_cache
-    
+
     def next(self, mode='train'):
         """
         Gets next batch from the dataset with mode
@@ -207,7 +193,7 @@ def clean2noisy(x, sigmas):
     :return: noisy + x
     """
     tmp = np.zeros_like(x)
-    
+
     for idx in range(x.shape[0]):
         sigma = np.random.choice(sigmas)
         tmp[idx, ...] = np.random.randn(x.shape[1], x.shape[2], x.shape[3])*(sigma/255.0)

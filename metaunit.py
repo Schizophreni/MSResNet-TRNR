@@ -365,8 +365,8 @@ class MetaUnit(nn.Module):
             state['attenuate_weight'] = self.attenuate_weight
         torch.save(state, f=model_save_dir)
     
-    def load_model(self, model_save_path):
-        ckp = torch.load(model_save_path)
+    def load_model(self, model_save_path, map_location='cuda'):
+        ckp = torch.load(model_save_path, map_location=map_location)
         # self.meta_optim.load_state_dict(ckp['optim'])
         # self.scheduler.load_state_dict(ckp['lr_scheduler'])
         self.net.load_state_dict(ckp['net'])
