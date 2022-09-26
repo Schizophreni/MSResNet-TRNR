@@ -1,2 +1,3 @@
 # TRNR
-Task-driven image deraining and denoising with a few images based on patch analysis
+The pytorch implementation of "Task-driven Image Deraining and Denoising with a Few Images Based on Patch Analysis"
+## Usage instructions will be detailed soon.
