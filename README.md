@@ -3,11 +3,11 @@
 
 * An overview of the task-driven learning approach.
 
-![img](D:\Education\deepModels\TRNR\feature_visualization\TRNR.png)
+![img](feature_visualization/TRNR.png)
 
 * Model architecture for image deraining and denoising. 
 
-![img](D:\Education\deepModels\TRNR\feature_visualization\net.png)
+![img](feature_visualization/net.png)
 
 ## Requirements
 
