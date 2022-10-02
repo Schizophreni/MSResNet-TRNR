@@ -74,6 +74,49 @@ The **Pre-training checkpoints** will be uploaded soon.
 
 ## Training models with TRNR
 
+You can train model using the script below
+
+```python
+python train_metalip.py --root_dir ${data_dir} --freqn 16 --task_num 5 --meta_lr 0.001 --update_lr 0.001 --number_of_training_steps_per_iter 2 --batch_size 5 --ssim_weight 5.0 --total_iteration 60000 --channel_weight 0.0 
+```
+
+The `Arguments` are defined in the file `utils/arguments.py`, some key arguments are:
+
+- number_of_training_steps_per_iter: number of training steps in the inner-loop (default 2)
+-  update_lr: learning rate for inner-loop (default: 1e-3)
+- meta_lr: learning rate for outer-loop, task-driven learning (default: 1e-3)
+- task_num: number of N-frequency-K-shot tasks in the training stage (default: 5)
+- freqn: number of image patch pair in each N-frequency-K-shot task (default: 16)
+- total_iteration: number of total iterations
+- root_dir: the default clustered dataset path
+- ssim_weight: hyper-param that leverages the ssim loss weight
+
+The clustered images are organized as below:
+
+```bash
+|-root_dir
+         |-train
+                |-rain # rainy patches
+                      |-cp-0 # first cluster
+                           |-patch-0.png
+                           |-patch-1.png
+                           ...
+                      |-cp-1 # second cluster
+                      ...
+                |-clean # clean patches
+                      |-cp-0
+                           |-patch-0.png
+                           |-patch-1.png
+                           ...
+                      |-cp-1
+                      ...
+         |-test
+                |-rain # rainy patches
+                |-clean # clean patches
+```
+
+
+
 ## Prepare your own datasets
 
 ## Customize your own model
