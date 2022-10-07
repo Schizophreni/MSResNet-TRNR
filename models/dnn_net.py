@@ -1,10 +1,8 @@
 """
 Re-implement network for DDN
 """
-import sys
-from meta_layers import *
+from models.meta_layers import *
 import torch.nn as nn
-import torch.nn.functional as F
 from utils.guided_filtering import GuidedFilter2d
 
 

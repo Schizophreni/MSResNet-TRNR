@@ -77,7 +77,7 @@ The **Pre-training checkpoints** will be uploaded soon.
 You can train model using the script below
 
 ```python
-python train_metalip.py --root_dir ${data_dir} --freqn 16 --task_num 5 --meta_lr 0.001 --update_lr 0.001 --number_of_training_steps_per_iter 2 --batch_size 5 --ssim_weight 5.0 --total_iteration 60000 --channel_weight 0.0 
+python train_metalip.py --root_dir ${data_dir} --freqn 12 --task_num 5 --meta_lr 0.001 --update_lr 0.001 --number_of_training_steps_per_iter 2 --batch_size 5 --ssim_weight 5.0 --total_iteration 60000 --channel_weight 0.0 
 ```
 
 The `Arguments` are defined in the file `utils/arguments.py`, some key arguments are:
@@ -115,7 +115,14 @@ The clustered images are organized as below:
                 |-clean # clean patches
 ```
 
+The specular argument settings for different datasets are listed below:
 
+- Rain100L-S: `batch_size/task_num: 5, freqn: 12, total_iteration: 60000`
+- Rain800-S: `batch_size/task_num: 3, freqn: 32, total_iteration: 120000`
+- Rain100H-S: `batch_size/task_num: 5, freqn: 12, total_iteration: 60000`
+- RainLight-S / RainHeavy-S: `batch_size/task_num: 3, freqn: 32, total_iteration: 120000`
+- Rain1400-S: `batch_size/task_num: 3, freqn: 32, total_iteration: 280000`
+- WaterlooBSD-S: 
 
 ## Prepare your own datasets
 

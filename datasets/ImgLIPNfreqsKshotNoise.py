@@ -1,17 +1,11 @@
 """
 files for N-freqs K-shot meta learning
 """
-from ImgLIPDset import ImgLIPDset
+from datasets.ImgLIPDset import ImgLIPDset
 from PIL import Image
 import os
 import numpy as np
 import torchvision.transforms as transforms
-import sys
-sys.path.append('..')
-from utils.clean2noise import clean2rain
-import torchvision.transforms.functional as tvF
-import random
-import torch
 
 
 class ImgLIPNfreqsKshot:

@@ -1,7 +1,6 @@
-from meta_layers import *
+from models.meta_layers import *
 import torch.nn as nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
 
 
 class MetaMSResNet(nn.Module):

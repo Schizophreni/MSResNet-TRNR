@@ -4,9 +4,9 @@ import numpy as np
 import sys
 import time
 import torch
-sys.path.append('..')
 from utils.logconf import get_logger, build_folder, load_checkpoint
 from utils.metrics import SSIM, PSNR
+
 
 class MergeAllIngredients:
     def __init__(self, args=None, database=None, test_dataset=None, model=None):
@@ -192,12 +192,12 @@ class MergeAllIngredients:
                     
 if __name__ == '__main__':
     from utils.arguments import get_args
-    from ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
+    from datasets.ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
     # from ImportantSampling import ImgLIPNfreqsKshot
     # from ImgLIPNfreqsKshotNoise import ImgLIPNfreqsKshot
-    from nets import MetaMSResNet
-    from metaunit import MetaUnit
-    from ImgLIPDset import TestDataset
+    from models.nets import MetaMSResNet
+    from models.metaunit import MetaUnit
+    from datasets.ImgLIPDset import TestDataset
     args = get_args()
     torch.manual_seed(1)
     kwargs = {'Agg_input': True, 'input_channels': 3}
@@ -231,9 +231,11 @@ if __name__ == '__main__':
     torch.manual_seed(0)
     np.random.seed(0)
 
+    args.device = torch.device('cuda') if args.device else torch.device('cpu')
+
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     
-    db_test =  TestDataset(dataset_config, **Rain200L_test_kwargs)
+    db_test = TestDataset(dataset_config, **Rain100L_test_kwargs)
     # net = MultiScaleResNet(in_channels=3, num_filters=48, out_channels=3, k1=4, k2=0, args=args, Agg=False, dilated_factors=3)
     net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
     model = MetaUnit(args=args, net=net)

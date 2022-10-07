@@ -15,7 +15,7 @@ import torch
 from copy import copy
 from functools import reduce
 # from torch.nn.modules import padding
-from feature_vis import show_feature
+# from models.feature_vis import show_feature
 
 
 def extract_top_level_dict(current_dict):
@@ -165,7 +165,7 @@ class MetaMAEB(nn.Module):
         if self.withSE:
             out = self.layer_dict['se'].forward(out, params=param_dict['se'])
         out = x[:,:self.num_filters,:,:] + out
-        show_feature(out, layer_name='maeb')
+        # show_feature(out, layer_name='maeb')
         return out
 
 class MetaMSFUSEV3(nn.Module):

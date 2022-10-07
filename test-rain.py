@@ -1,15 +1,17 @@
 from utils.arguments import get_args
-from ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
-from nets import *
-from metaunit import MetaUnit
-from ImgLIPDset import TestDataset
+from datasets.ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
+from models.nets import *
+from models.metaunit import MetaUnit
+from datasets.ImgLIPDset import TestDataset
 args = get_args()
 from utils.metrics import SSIM, PSNR
 import cv2
 import glob
 import os
+import numpy as np
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 ssim = SSIM()
 

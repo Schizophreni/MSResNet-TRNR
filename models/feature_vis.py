@@ -1,6 +1,6 @@
 import torch
 
-from meta_layers import *
+from models.meta_layers import *
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ def show_feature(inp_tensor, layer_name):
             plt.yticks([])
             plt.imshow(s_feat) # , cmap='gray')
             print(stds[indexes[cols*i+j]], s_feat.min(), cols*i+j+1)
-    plt.savefig('feature_visualization/{}.png'.format(layer_name), bbox_inches='tight', pad_inches=0.1, dpi=400)
+    plt.savefig('../feature_visualization/{}.png'.format(layer_name), bbox_inches='tight', pad_inches=0.1, dpi=400)
     #
     # plt.show()
 

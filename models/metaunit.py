@@ -1,8 +1,6 @@
-import os
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import sys
 sys.path.append('..')
@@ -61,6 +59,7 @@ class MetaUnit(nn.Module):
             self.attenuate_weight = torch.zeros(num_layers).to(self.device)
 
         task_name_params = self.get_inner_loop_params_dict(self.named_parameters())
+        """
         print('Inner Loop parameters')
         for k, v in task_name_params.items():
             print(k, v.shape)
@@ -68,6 +67,7 @@ class MetaUnit(nn.Module):
         for name, param in self.named_parameters():
             if param.requires_grad:
                 print(name, param.shape)
+        """
         self.meta_optim = optim.Adam(self.trainable_params(), lr=self.meta_lr, amsgrad=False, weight_decay=4e-5)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer=self.meta_optim, 
                           T_max=self.args.total_epochs, eta_min=self.args.min_learning_rate)
@@ -79,7 +79,7 @@ class MetaUnit(nn.Module):
         layer_index = self.net.get_layer_index()
         rate = (max_update_lr-min_update_lr)/(max(layer_index)-1)
         layer_update_lr = [max_update_lr - rate*(idx-1) for idx in layer_index] ## per layer learning rate
-        print('initial inner loop learning rate per layer: ', layer_update_lr)
+        # print('initial inner loop learning rate per layer: ', layer_update_lr)
         self.update_lr = nn.Parameter(torch.FloatTensor(layer_update_lr), requires_grad=False)
     
     def fill_update_lr(self):

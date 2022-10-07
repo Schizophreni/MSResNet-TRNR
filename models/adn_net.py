@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from meta_layers import MetaConv2dLayer, extract_top_level_dict
+from models.meta_layers import MetaConv2dLayer, extract_top_level_dict
 from functools import reduce
 
 
