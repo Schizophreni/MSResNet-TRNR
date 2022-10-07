@@ -33,7 +33,7 @@ class MetaMSResNet(nn.Module):
         else:
             Agg_channels = 0
             # self.name = '{}-{}-{}s-0826'.format(msb, rb, stages)
-            self.name = 'MAEB-RES-WaterlooBSD-500-{}stages-ssim{}-sigma15'.format(stages, args.ssim_weight)
+            self.name = 'MAEB-RES-Rain800-60-{}s-{}ssim'.format(stages, args.ssim_weight)
         self.layer_dict['head'] = MetaConv2dLayer(in_channels, num_filters, 3, 1, 1, use_bias=False)
         for i in range(stages):
             self.layer_dict['body{}'.format(i+1)] = MetaMSRB(num_filters+Agg_channels, num_filters, args,

@@ -153,7 +153,7 @@ class MergeAllIngredients:
             end_iter = (start_iter // self.iters_per_epoch+1)*self.iters_per_epoch
             # if self.state['current_iter'] in [5000, 25000]:
             #     self.model.update_lr.data = self.model.update_lr.data/2.0
-            with tqdm.tqdm(initial=start_iter, total=self.iters_per_epoch, ncols=200) as pbar_train:
+            with tqdm.tqdm(initial=start_iter, total=self.iters_per_epoch, ncols=120) as pbar_train:
                 for iteration in range(start_iter, end_iter):
                     # self.test_imgs(pbar=pbar_train)
                     train_batch = self.database.next(mode='train')
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     
-    db_test = TestDataset(dataset_config, **Rain100L_test_kwargs)
+    db_test = TestDataset(dataset_config, **Rain800_test_kwargs)
     # net = MultiScaleResNet(in_channels=3, num_filters=48, out_channels=3, k1=4, k2=0, args=args, Agg=False, dilated_factors=3)
     net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
     model = MetaUnit(args=args, net=net)
