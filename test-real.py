@@ -1,14 +1,10 @@
 from utils.arguments import get_args
-from ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
 from nets import MetaMSResNet
 from metaunit import MetaUnit
-from ImgLIPDset import TestDataset
-args = get_args()
 from utils.metrics import SSIM, PSNR
 import cv2
 from PIL import Image
 import os
-import glob
 import numpy as np
 import torch
 
@@ -28,7 +24,7 @@ def parse_imgs(imgs_dir):
 
 net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
 model = MetaUnit(args=args, net=net)
-model.load_model(model_save_path='results/derain/MAEB-RES-Rain800-280-4stages-ssim5.0-5-12/models/{}-iterModel.tar'.format(args.total_epochs))
+model.load_state_dict(torch.load(args.test_model)['net'])
 
 test_psnrs, test_ssims = [], []
 base_H, base_W = 1000, 1000

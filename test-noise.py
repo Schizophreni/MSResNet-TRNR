@@ -1,9 +1,6 @@
 from utils.arguments import get_args
-from ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
-from nets import MetaMSResNetNoise, AdaFM
-from metaunit import MetaUnit
-from ImgLIPDset import TestDataset
-args = get_args()
+from models.nets import MetaMSResNetN, AdaFM
+from models.metaunit_noise import MetaUnit
 from utils.metrics import SSIM, PSNR
 import cv2
 import torchvision.transforms as transforms
@@ -26,6 +23,8 @@ ssim = SSIM()
 
 psnr = PSNR(max_val=1.0)
 np.random.seed(0)
+args = get_args()
+
 sigma = 25
 
 def parse_imgs(imgs_dir):
@@ -40,20 +39,18 @@ def parse_imgs(imgs_dir):
 
 args.device=torch.device('cuda')
 os.environ['CUDA_VISIBLE_DEVICES']='0'
-# net = MetaMSResNetNoise(1, 64, stages=3, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
+net = net = MetaMSResNetN(in_channels=1, num_filters=64, stages=6, args=args, withSE=True)
 # net = AdaFM(in_nc=3, out_nc=3, args=args)
-net = MetaMSResNetNoise(in_channels=3, num_filters=64, stages=8, args=args, withSE=True)
 model = MetaUnit(args=args, net=net)
 # model.load_model(model_save_path='results/derain/AdaFM-3c-16nb-64nf-3-70/models/bestckp.tar'.format(args.total_epochs),
 #                map_location='cuda')
-model.load_model(model_save_path='Ablation/results/dataSize/Noise/MSResNet-3c-8s/models/bestckp.tar')
+# model.load_model(model_save_path='Ablation/results/dataSize/Noise/AdaFM-3c-16nb-64nf/models/bestckp.tar', map_location='cuda')
+model.load_model(torch.load(args.model))
 
 test_psnrs, test_ssims = [], []
 
-imgs_dir = '/home/rw/Public/datasets/denoise/BSD68'
-# imgs_dir = '/home/rw/Public/datasets/denoise/BSD500-150/ProcessData/train/clean/cp-10'
+imgs_dir = '/home/rw/Public/datasets/denoise/Kodak'
 test_imgs = parse_imgs(imgs_dir=imgs_dir)
-# noise_level = np.random.choice(range(23, 27))
 
 noise_level = sigma/255.0
 print('noise level: ', noise_level)
