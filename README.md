@@ -33,12 +33,12 @@ Please refer to the testing files:
 Codes below show examples of testing function call.
 
 ```python
-python test_rain.py 
-python test_noise.py
-python test_real.py
+python test_rain.py --test_model ${test model path}$
+python test_noise.py --test_model ${test model path}$
+python test_real.py --test_model ${test model path}$
 ```
 
-For a success testing, you may need to modify the **testing dataset key arguments**, the **configuration for test-set**, and the **checkpoint path**. 
+For a successful testing, you may need to modify the **testing dataset key arguments**, the **configuration for test-set**, and the **checkpoint path**. 
 
 The **Pre-training checkpoints** will be uploaded soon.
 
@@ -66,10 +66,17 @@ The **Pre-training checkpoints** will be uploaded soon.
   }
   ```
 
-- checkpoint path (load specific checkpoint  | `test_rain.py` as an example)
+- checkpoint path (path of pretrained model)
 
   ```python
-  model.load_model(model_save_path="XXX")
+  # checkpoints path 
+  'Rain100L-S': 'results/derain/MSResNet-Rain100L-100-TRNR/best.pth'
+  'Rain100H-S': 'results/derain/MSResNet-Rain100H-250-TRNR/best.pth'
+  'RainLight-S': 'results/derain/MSResNet-Rain200L-100x6-TRNR/best.pth'
+  'RainHeavy-S': 'results/derain/MSResNet-Rain200L-100x6-TRNR/best.pth'
+  'Rain1400-S': 'results/derain/MSResNet-Rain1400-100x14-TRNR/best.pth'
+  'WaterlooBSD-S (Color)': 'results/denoise/MSResNet-WaterlooBSD-500-Color-TRNR/best.pth'
+  'WaterlooBSD-S (GRAY)': 'results/denoise/MSResNet-WaterlooBSD-500-Color-TRNR/best.pth'
   ```
 
 ## Training models with TRNR
