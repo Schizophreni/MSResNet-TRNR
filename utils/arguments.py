@@ -11,7 +11,7 @@ def get_args():
     parser.add_argument('--learnable_bn_beta', type=bool, help='learn beta in bn', default=True)
     parser.add_argument('--number_of_training_steps_per_iter', type=int, help='inner loop steps', default=2)
     parser.add_argument('--use_per_step_bn_statistics', type=int, help='use bn in each inner loop', default=False)
-    parser.add_argument('--device', action="store_true", help='whether to use GPU')
+    parser.add_argument('--use_GPU', action="store_true", help='whether to use GPU')
     parser.add_argument('--batch_size', type=int, help='batch size', default=8)
     parser.add_argument('--seed', type=int, help='random seed', default=1)
     parser.add_argument('--update_lr', type=float, help='inner loop lr', default=0.001)

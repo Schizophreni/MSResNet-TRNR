@@ -3,7 +3,6 @@ from datasets.ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
 from models.nets import *
 from models.metaunit import MetaUnit
 from datasets.ImgLIPDset import TestDataset
-args = get_args()
 from utils.metrics import SSIM, PSNR
 import cv2
 import glob
@@ -18,12 +17,15 @@ ssim = SSIM()
 
 psnr = PSNR(max_val=1.0)
 
+args = get_args()
+
 kwargs = {'Agg_input': True, 'input_channels': 3}
-test_kwargs={
-'dataset': 'Rain100L-t',
-'type': 'rain',
-'clean_dir': '/home/rw/Public/datasets/derain/Rain100L-origin/test/norain',
-'noise_dir': '/home/rw/Public/datasets/derain/Rain100L-origin/test/rain',
+
+Rain100L_test_kwargs = {
+    'dataset': 'Rain100L-t',
+    'type': 'rain',
+    'clean_dir': '/home/rw/Public/datasets/derain/Rain100L/norain',
+    'noise_dir': '/home/rw/Public/datasets/derain/Rain100L/rain',
 }
 
 Rain100H_test_kwargs={
@@ -40,28 +42,31 @@ Rain800_test_kwargs={
 'noise_dir': '/home/rw/Public/datasets/derain/Rain800/test/rain',
 }
 
-Rain100L_test_kwargs = {
-    'dataset': 'Rain100L-t',
-    'type': 'rain',
-    'clean_dir': '/home/rw/Public/datasets/derain/Rain100L/norain',
-    'noise_dir': '/home/rw/Public/datasets/derain/Rain100L/rain',
+Rain200H_test_kwargs = {
+    'dataset': 'Rain200H-t',
+    'type': 'rain', 
+    'clean_dir': '/home/rw/Public/datasets/derain/Rain200H/test/norain',
+    'noise_dir': '/home/rw/Public/datasets/derain/Rain200H/test/rain/X2/'
+}
+
+Rain200L_test_kwargs = {
+    'dataset': 'Rain200L-t',
+    'type': 'rain', 
+    'clean_dir': '/home/rw/Public/datasets/derain/Rain200L/test/norain',
+    'noise_dir': '/home/rw/Public/datasets/derain/Rain200L/test/rain/X2/'
 }
 
 dataset_config = {
-'Rain100L': ('norain-{}.png', 'rain-{}.png', 50, 1),
-'Rain100L-test': ('norain-{}.png', 'rain-{}.png', 30, 1),
 'Rain100L-t': ('norain-{:03d}.png', 'rain-{:03d}.png', 100, 1),
 'Rain100H-t': ('norain-{:03d}.png', 'rain-{:03d}.png', 100, 1),
 'Rain800-t': ('norain-{:03d}.png', 'rain-{:03d}.png', 100, 1),
+'Rain200L-t': ('norain-{}.png', 'norain-{}x2.png', 200, 1),
+'Rain200H-t': ('norain-{}.png', 'norain-{}x2.png', 200, 1),
 }
-#torch.manual_seed(0)
-# np.random.seed(0)
-db_test =  TestDataset(dataset_config, **Rain100L_test_kwargs)
+
+db_test =  TestDataset(dataset_config, **Rain200H_test_kwargs)
 net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
 model = MetaUnit(args=args, net=net)
-# model.load_model(model_save_path='results/derain/MAEB-RES-Rain100L64-100-4stages-ssim5.0-5-12/models/{}-iterModel.tar'.format(args.total_epochs))
-# model.load_model(model_save_path='Ablation/results/dataSize/PA/MSResNetAggPA-4-0-48C-Rain100L-10-multi-merge-1-32/models/{}-iterModel.tar'.format(args.total_epochs))
-# model.load_model(model_save_path='results/derain/MPR/MSResNetAggPA-4-0-48C-SSIM5.0-GDLoss0.0-4-30-40imgs/models/{}-iterModel.tar'.format(args.total_epochs))
 model.load_state_dict(torch.load(args.test_model)['net'])
 
 test_psnrs, test_ssims = [], []
@@ -84,7 +89,7 @@ for i in range(len(db_test)):
                     denoise_img.data[:,:,idx_i*base_H:end_H, idx_j*base_W:end_W] = crop_derain.data
     else:
         with torch.no_grad():
-            denoise_img = model.test_with_attenuate(noise_img, verbose=True if i==0 else False)
+            denoise_img = model.test_with_attenuate(noise_img, verbose=True if i==0 else False, training=False)
     denoise_img = torch.clamp(denoise_img, min=0.0, max=1.0)
     psnr_val = psnr.calc_psnr(denoise_img, clean_img)
     ssim_val = ssim.ssim(denoise_img, clean_img)
@@ -94,6 +99,6 @@ for i in range(len(db_test)):
     denoise_img = denoise_img.transpose(1, 2, 0)*255
     cv2.imwrite('derained/derain{}.png'.format(i+1),denoise_img.astype('uint8')[..., ::-1])
     print('index: {}, psnr: {}, ssim: {}'.format(i+1, psnr_val, ssim_val))
-test_psnr = np.array(test_psnrs).mean().astype(np.float32)
-test_ssim = np.array(test_ssims).mean().astype(np.float32)
+test_psnr = np.array(test_psnrs).mean().astype(np.float16)
+test_ssim = np.array(test_ssims).mean().astype(np.float16)
 print('average psnr: {}, ssim: {}'.format(test_psnr, test_ssim))

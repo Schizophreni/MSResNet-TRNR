@@ -31,7 +31,7 @@ class MetaUnit(nn.Module):
         '''
         super(MetaUnit, self).__init__()
         self.args = args
-        self.device = args.device
+        self.device = torch.device('cuda') if args.use_GPU else torch.device('cpu')
         self.batch_size = args.batch_size
         self.current_epoch=0
         

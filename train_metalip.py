@@ -236,7 +236,6 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     
     db_test = TestDataset(dataset_config, **Rain800_test_kwargs)
-    # net = MultiScaleResNet(in_channels=3, num_filters=48, out_channels=3, k1=4, k2=0, args=args, Agg=False, dilated_factors=3)
     net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
     model = MetaUnit(args=args, net=net)
 
