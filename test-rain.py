@@ -9,6 +9,7 @@ import cv2
 import glob
 import os
 import numpy as np
+import torch
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -58,9 +59,10 @@ dataset_config = {
 db_test =  TestDataset(dataset_config, **Rain100L_test_kwargs)
 net = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu')
 model = MetaUnit(args=args, net=net)
-model.load_model(model_save_path='results/derain/MAEB-RES-Rain100L64-100-4stages-ssim5.0-5-12/models/{}-iterModel.tar'.format(args.total_epochs))
+# model.load_model(model_save_path='results/derain/MAEB-RES-Rain100L64-100-4stages-ssim5.0-5-12/models/{}-iterModel.tar'.format(args.total_epochs))
 # model.load_model(model_save_path='Ablation/results/dataSize/PA/MSResNetAggPA-4-0-48C-Rain100L-10-multi-merge-1-32/models/{}-iterModel.tar'.format(args.total_epochs))
 # model.load_model(model_save_path='results/derain/MPR/MSResNetAggPA-4-0-48C-SSIM5.0-GDLoss0.0-4-30-40imgs/models/{}-iterModel.tar'.format(args.total_epochs))
+model.load_state_dict(torch.load(args.test_model)['net'])
 
 test_psnrs, test_ssims = [], []
 base_H, base_W = 1000, 1000

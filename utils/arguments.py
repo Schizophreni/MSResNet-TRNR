@@ -43,5 +43,6 @@ def get_args():
     parser.add_argument('--attenuate', type=bool, help='whether to use attentuation', default=False)
     parser.add_argument('--ssim_weight', type=float, help='ssim weight', default=5.0)
     parser.add_argument('--channel_weight', type=float, help='channel loss weight', default=0.0)
+    parser.add_argument('--test_model', type=str, default='', help='test model checkpoint path')
     args = parser.parse_args()
     return args

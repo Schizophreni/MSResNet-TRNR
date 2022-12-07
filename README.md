@@ -115,6 +115,12 @@ The clustered images are organized as below:
                 |-clean # clean patches
 ```
 
+**Please download datasets for the re-implementation of TRNR through links below:**
+
+[Baidu Cloud](https://pan.baidu.com/s/1Izk3e8XThCE0wGJ_neCt3A?pwd=otjs)
+
+[Google drive](https://drive.google.com/drive/folders/14qWdyxcbw7FMpWGWBQL5ubzgOIbGR7IP?usp=sharing)
+
 The specular argument settings for different datasets are listed below:
 
 - Rain100L-S: `batch_size/task_num: 5, freqn: 12, total_iteration: 60000`
@@ -122,7 +128,7 @@ The specular argument settings for different datasets are listed below:
 - Rain100H-S: `batch_size/task_num: 5, freqn: 12, total_iteration: 60000`
 - RainLight-S / RainHeavy-S: `batch_size/task_num: 3, freqn: 32, total_iteration: 120000`
 - Rain1400-S: `batch_size/task_num: 3, freqn: 32, total_iteration: 280000`
-- WaterlooBSD-S: 
+- WaterlooBSD-S: `batch_size/task_num: 3, freqn: 18, total_iteration: 500000`
 
 ## Prepare your own datasets
 
