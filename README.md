@@ -3,11 +3,11 @@
 
 * An overview of the task-driven learning approach.
 
-![img](feature_visualization/TRNR.png)
+![img](resources/TRNR.png)
 
 * Model architecture for image deraining and denoising. 
 
-![img](feature_visualization/net.png)
+![img](resources/net.png)
 
 ## Requirements
 
@@ -55,7 +55,7 @@ The **Pre-training checkpoints** will be uploaded soon.
 
 - configuration for test-set (A dictionary to set the test clean/rainy image format | `test_rain.py` as an example)
 
-  This test format refers to [ReHEN](https://github.com/nnUyi/ReHEN)
+  This test format refers to [ReHEN](https://github.com/nnUyi/ReHEN) (*thanks for sharing*)
 
   ```python
   dataset_config = {
