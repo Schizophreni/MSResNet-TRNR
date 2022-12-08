@@ -32,6 +32,10 @@ class RandomBatchDataset(data.Dataset):
                 self.rain_imgs = glob.glob(os.path.join(root_dir, 'rain/*.jpg'))
                 self.rain_imgs = sorted(self.rain_imgs) # make sure same results
                 print('Load data from {}, total examples: {}'.format(root_dir, len(self.rain_imgs)))
+            elif dataset_name == 'Few':
+                # for few images learning 
+                self.clean_imgs = glob.glob(os.path.join(root_dir, 'clean/norain-*.png'))
+                self.clean_imgs = sorted(self.clean_imgs)
         else: ## for noise
             self.clean_imgs = glob.glob(os.path.join(root_dir, '*.bmp'))
             self.clean_imgs.extend(glob.glob(os.path.join(root_dir, '*.jpg')))
@@ -40,7 +44,7 @@ class RandomBatchDataset(data.Dataset):
 
     def __getitem__(self, idx):
         if self.process_type == 'rain':
-            if self.dataset_name in ['Rain100L', 'Rain100H', 'Rain800']:
+            if self.dataset_name in ['Rain100L', 'Rain100H', 'Rain800', 'Few']:
                 clean_img = self.clean_imgs[idx]
                 rain_img = clean_img.replace('clean', 'rain').replace('norain', 'rain')
             elif self.dataset_name in ['Rain200L', 'Rain200H']:
@@ -123,7 +127,7 @@ class RandomBatchDataset(data.Dataset):
         return clean_img, rain_img
     
     def _tuple_trans_noise(self, clean_img, noise_sigma=None):
-        clean_img = Image.open(clean_img).convert('RGB')# .convert('L')  ## gray 'L'
+        clean_img = Image.open(clean_img).convert('RGB')# .convert('RGB')  ## gray 'L'
         ## crop coordinates
         i, j, h, w = transforms.RandomCrop.get_params(clean_img, (self.patch_size, self.patch_size))
         ## crop clean image
@@ -189,12 +193,14 @@ Random batch sampling II can be simply implemented with DataLoader, will not imp
 """
 
 class RandomPatch(data.Dataset):
-    def __init__(self, root_dir, mode='train'):
+    def __init__(self, root_dir, mode='train', dataset_name='Few', process_type='rain'):
         """
         Random patch sampling strategy: directly sample image patches from datasets
         """
         self.root_dir = root_dir
         self.mode = mode
+        self.dataset_name = dataset_name
+        self.process_type = process_type
         self.parse_dir()
         self.transformation = transforms.Compose(
             [lambda x: Image.open(x),
@@ -213,6 +219,7 @@ class RandomPatch(data.Dataset):
             self.clean_patches = []
             for sub_dir in sub_dirs:
                 clean_patches = glob.glob(os.path.join(self.root_dir, sub_dir, '{}Patches'.format(self.mode),'clean/*.png'))
+                clean_patches = sorted(clean_patches)
                 self.clean_patches.extend(clean_patches)
 
 
@@ -234,33 +241,6 @@ class RandomPatch(data.Dataset):
 
     def __len__(self):
         return len(self.clean_patches)
-
-class NoiseDataset(data.Dataset):
-	r"""Implements torch.utils.data.Dataset
-	"""
-	def __init__(self, file_path, gray_mode=False, shuffle=False):
-		super(Dataset, self).__init__()
-		self.train = train
-		self.gray_mode = gray_mode
-		self.trainbf = file_path
-
-		if self.train:
-			h5f = h5py.File(self.traindbf, 'r')
-		self.keys = list(h5f.keys())
-		if shuffle:
-			random.shuffle(self.keys)
-		h5f.close()
-
-	def __len__(self):
-		return len(self.keys)
-
-	def __getitem__(self, index):
-		h5f = h5py.File(self.traindbf, 'r')
-		
-		key = self.keys[index]
-		data = np.array(h5f[key])
-		h5f.close()
-		return torch.Tensor(data)
 
 
 if __name__ == '__main__':

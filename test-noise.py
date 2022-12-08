@@ -42,10 +42,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 net = net = MetaMSResNetN(in_channels=1, num_filters=64, stages=6, args=args, withSE=True)
 # net = AdaFM(in_nc=3, out_nc=3, args=args)
 model = MetaUnit(args=args, net=net)
-# model.load_model(model_save_path='results/derain/AdaFM-3c-16nb-64nf-3-70/models/bestckp.tar'.format(args.total_epochs),
-#                map_location='cuda')
-# model.load_model(model_save_path='Ablation/results/dataSize/Noise/AdaFM-3c-16nb-64nf/models/bestckp.tar', map_location='cuda')
-model.load_model(torch.load(args.model))
+model.load_state_dict(torch.load(args.model))
 
 test_psnrs, test_ssims = [], []
 

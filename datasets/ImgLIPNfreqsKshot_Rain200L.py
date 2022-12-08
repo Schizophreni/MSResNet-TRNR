@@ -1,11 +1,18 @@
 """
 files for N-freqs K-shot meta learning
 """
-from datasets.ImgLIPDset import ImgLIPDset
+from ImgLIPDset import ImgLIPDset
 from PIL import Image
 import os
 import numpy as np
 import torchvision.transforms as transforms
+import sys
+
+sys.path.append('..')
+from utils.clean2noise import clean2rain
+import torchvision.transforms.functional as tvF
+import random
+import torch
 
 
 class ImgLIPNfreqsKshot:
@@ -100,14 +107,13 @@ class ImgLIPNfreqsKshot:
             self.root_dirs = os.listdir(self.root_dir)
 
     def _tuple_trans(self, clean_img, noise_img):
-        clean_img = Image.open(
-            clean_img)  # .convert('L') ## this accords with cv2.cvtColor(src, cv2.COLOR_BGR2GRAY) but not with cv2.imread(src, cv2.IMREAD_GRAYSCALE)
+        clean_img = Image.open(clean_img)# .convert('L') ## this accords with cv2.cvtColor(src, cv2.COLOR_BGR2GRAY) but not with cv2.imread(src, cv2.IMREAD_GRAYSCALE)
         noise_img = Image.open(noise_img)
         data_aug = np.random.choice(4)
         if data_aug == 1:
-            clean_img = clean_img.rotate(180)
+            clean_img = np.array(clean_img)[::-1, ::-1, :]
             # clean_img = np.array(clean_img)
-            noise_img = noise_img.rotate(180)
+            noise_img = np.array(noise_img)[::-1, ::-1, :]
         elif data_aug == 2:
             clean_img = np.array(clean_img)[::-1, :, ...]
             noise_img = np.array(noise_img)[::-1, :, ...]
@@ -117,12 +123,10 @@ class ImgLIPNfreqsKshot:
         else:
             clean_img = np.array(clean_img)
             noise_img = np.array(noise_img)
-        # if clean_img.ndim == 2:
-        #     clean_img = np.expand_dims(clean_img, -1)
         clean_img = np.transpose(clean_img, (2, 0, 1))
-        clean_img = clean_img / 255.0
+        clean_img = clean_img/255.0
         noise_img = np.transpose(noise_img, (2, 0, 1))
-        noise_img = noise_img / 255.0
+        noise_img = noise_img/255.0
         return clean_img, noise_img
 
     def load_data_cache(self, dset, mode='train'):
@@ -136,7 +140,7 @@ class ImgLIPNfreqsKshot:
         qyrsz = self.k_query * self.n_freqs
         data_cache = []
 
-        for episode in range(1):
+        for episode in range(20):
             spts_x, spts_y, qrys_x, qrys_y = [], [], [], []
             selected_freqs_each_eposide = np.random.choice(len(dset), (self.n_freqs + 1) * self.batch_size,
                                                            replace=False)
@@ -167,7 +171,6 @@ class ImgLIPNfreqsKshot:
                     if label < self.n_freqs - 1:
                         for index, img in enumerate(selected_imgs[self.k_shot:]):
                             aug_idx = np.random.choice(self.repeat_times)
-                            # aug_idx = np.random.choice(self.repeat_times)
                             noise_img = img.replace('clean', 'rain').replace('.png', 'x{}.png'.format(aug_idx + 1))
                             qry_y[label * self.k_query + index, ...], qry_x[
                                 label * self.k_query + index, ...] = self._tuple_trans(clean_img=img,
@@ -206,61 +209,3 @@ class ImgLIPNfreqsKshot:
         next_batch = self.datasets_cache[mode][self.indexes[mode]]
         self.indexes[mode] += 1
         return next_batch
-
-
-def clean2noisy(x, sigmas):
-    """
-    generate noisy image from clean image
-    :param x: shape of [setsz, c, h, w]
-    :sigmas: tuple of sigma like (5, 10, 15, 20)
-    :return: noisy + x
-    """
-    tmp = np.zeros_like(x)
-
-    for idx in range(x.shape[0]):
-        sigma = np.random.choice(sigmas)
-        tmp[idx, ...] = np.random.randn(x.shape[1], x.shape[2], x.shape[3]) * (sigma / 255.0)
-    return tmp + x
-
-
-def main():
-    import random
-    import matplotlib.pyplot as plt
-    random.seed(0)
-    np.random.seed(0)
-    root_dir = 'D:/MetaLIP/data/Rain200H-100x6/Rain200H-100x6/ProcessData'
-    bsz = 4
-    n_freqs = 6
-    k_shot = 1
-    k_query = 1
-    db = ImgLIPNfreqsKshot(root_dir=root_dir, batch_size=bsz, n_freqs=n_freqs, k_shot=k_shot, k_query=k_query,
-                           patch_size=64, dataset_name='Rain200L')
-    spts_x, spts_y, qrys_x, qrys_y = db.next(mode='train')
-    print(spts_x.shape, spts_y.shape)
-    print(qrys_x.shape, qrys_y.shape)
-
-    for j in range(bsz):
-        for i in range(n_freqs):
-            plt.figure(1)
-            ax1 = plt.subplot(2, 2, 1)
-            ax2 = plt.subplot(2, 2, 2)
-            ax3 = plt.subplot(2, 2, 3)
-            ax4 = plt.subplot(2, 2, 4)
-            plt.sca(ax1)
-            plt.imshow(spts_x[j, i].transpose(1, 2, 0))
-            plt.sca(ax2)
-            plt.imshow(spts_y[j, i].transpose(1, 2, 0))
-            plt.sca(ax3)
-            plt.imshow(qrys_x[j, i].transpose(1, 2, 0))
-            plt.sca(ax4)
-            plt.imshow(qrys_y[j, i].transpose(1, 2, 0))
-            plt.show()
-
-
-if __name__ == '__main__':
-    main()
-
-
-
-
-

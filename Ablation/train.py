@@ -1,6 +1,6 @@
 import sys
 sys.path.append('..')
-from nets import MetaMSResNet
+from models.nets import MetaMSResNet
 from utils.metrics import SSIM, PSNR
 from utils.logconf import get_logger
 from utils.arguments import get_args
@@ -21,9 +21,10 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
 
     if process_type == 'rain':
         model = MetaMSResNet(3, 48, stages=4, args=args, Agg=False, withSE=True, msb='MAEB', rb='Dual', relu_type='lrelu', dilated_factors=3)
-        model.name = 'MAEB-RES-withMS-withSE-{}-full-4stages-SSIM{}'.format(dataset_name, args.ssim_weight)
+        model.name = 'MAEB-RES-Rain100L-100-SSIM{}'.format(args.ssim_weight)
     else:
         pass
+    model = model.cuda()
     # for name, param in model.named_parameters():
     #     print(name, param.size())
     tmp = filter(lambda x: x.requires_grad, model.parameters())
@@ -42,7 +43,7 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_epochs, eta_min=1e-4)
  
     ## save checkpoint settings
-    save_dir = 'results/{}'.format(model.name)
+    save_dir = 'results/dataSize/RPS/{}'.format(model.name)
     # save_dir = 'resutls/dataSize/RCS/{}'.format(model_name) # for ablation 
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
@@ -70,8 +71,6 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
     if mode != 'RBSI':
         ### case for no put back sampling
         train_data = Data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    
-    model = model.cuda()
     
     if mode == 'RBSI':
         while start_iter < total_iter:
@@ -168,15 +167,15 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
                         if param.requires_grad:
                             if param.grad is None:
                                 print(name)
-                        else:
-                            param.grad.clamp_(-10, 10)
+                            else:
+                                param.grad.clamp_(-10, 10)
                     optimizer.step()
 
                     if start_iter % 50 == 0:
                         ssim_val = ssim.ssim(clean_batch, derain_batch)
                         psnr_val = psnr.calc_psnr(clean_batch, derain_batch)
-                        print('[step: {}], psnr: {}, ssim: {}'.format(start_iter, psnr_val, ssim_val))
-                        logger.info('[step: {}], psnr: {}, ssim: {}'.format(start_iter, psnr_val, ssim_val))
+                        print('[step: {}], loss: {}, psnr: {}, ssim: {}'.format(start_iter, loss.item(), psnr_val, ssim_val))
+                        logger.info('[step: {}], loss: {}, psnr: {}, ssim: {}'.format(start_iter, loss.item(), psnr_val, ssim_val))
                     if start_iter % 500 == 0:
                         psnr_list = []
                         ssim_list = []
@@ -186,6 +185,7 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
                                 if clean_img.shape[-2] > 1000 or clean_img.shape[-1] > 1000:
                                     continue # do not test large image for fast test in training
                                 rain_img =  torch.FloatTensor(rain_img).cuda()
+                                clean_img = torch.FloatTensor(clean_img)
                                 with torch.no_grad():
                                     derain_img = model(rain_img, num_step=0, training=False).clamp_(0.0, 1.0).cpu()
                                     psnr_list.append(psnr.calc_psnr(derain_img, clean_img))
@@ -207,13 +207,13 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
                         if mean_psnr > best_psnr:
                             best_psnr = mean_psnr
                             torch.save(model.state_dict(), os.path.join(save_model_dir, 'best.pth'))
-                        print('[===test: psnr: {}, ssim: {}'.format(mean_psnr, mean_ssim))
+                        print('[===test: psnr: {}, ssim: {}, num: {}'.format(mean_psnr, mean_ssim, len(psnr_list)))
                         logger.info('[===test: psnr: {}, ssim: {}'.format(mean_psnr, mean_ssim))
                         model_path = os.path.join(save_model_dir, 'latest.tar'.format(start_iter))
                         torch.save({
                             'iter': start_iter, 
                             'ssim': mean_ssim, 
-                            'psnr': mean_psnr, 
+                            'psnr': best_psnr, 
                             'net': model.state_dict(),
                             'optim': optimizer.state_dict(),
                             'lr_scheduler': scheduler.state_dict()
@@ -224,25 +224,26 @@ def train(train_data, test_data, batch_size=32, total_iter=50000, mode='RBSI', a
 if __name__ == '__main__':
     args = get_args()
     ### RBSI
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     from random_batch_sampling import RandomBatchSamplingI, RandomPatch, RandomBatchDataset
-    iterations = 50000*10
+    iterations = 60000
     np.random.seed(0)
     torch.manual_seed(0)
     random.seed(0)
     ## training for RBS
     # torch.use_deterministic_algorithms(True)
-
-    train_data = RandomBatchSamplingI(root_dir='/home/wran/Public/datasets/derain/Rain14000/train', patch_size=64, dataset_name='Rain14000', process_type='rain')
-    test_data = RandomBatchDataset(root_dir='/home/wran/Public/datasets/derain/Rain14000/test', patch_size=64, dataset_name='Rain14000', process_type='rain')
+    
+    """
+    train_data = RandomBatchSamplingI(root_dir='/home/rw/Public/datasets/derain/Rain800-200-multi/train', patch_size=64, dataset_name='Few', process_type='rain')
+    test_data = RandomBatchDataset(root_dir='/home/rw/Public/datasets/derain/Rain800/test', patch_size=64, dataset_name='Rain800', process_type='rain')
     train(train_data, test_data, total_iter=iterations, mode='RBSI', args=args)
+    """
 
-    '''
     ### train for RPS
-    train_data = RandomPatch(root_dir='/home/cv/TEMP/data/Rain100L-multi', mode='train')
-    test_data = RandomPatch(root_dir='/home/cv/TEMP/data/Rain100L-multi', mode='test')
+    train_data = RandomPatch(root_dir='/home/rw/Public/datasets/derain/Rain100L64-100/RawData', mode='train', dataset_name='Rain100L', process_type='rain')
+    # test_data = RandomPatch(root_dir='/home/cv/TEMP/data/Rain100L-multi', mode='test')
+    test_data = RandomBatchDataset(root_dir='/home/rw/Public/datasets/derain/Rain100L/test', patch_size=64, dataset_name='Rain100L', process_type='rain')
     train(train_data, test_data, total_iter=iterations, mode='RPS', args=args)
-    '''
     
 
     

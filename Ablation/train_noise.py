@@ -1,6 +1,6 @@
 import sys
 sys.path.append('..')
-from nets import MetaMSResNetNoise, AdaFM
+from models.nets import AdaFM, MetaMSResNetN
 from utils.metrics import SSIM, PSNR
 from utils.logconf import get_logger
 from utils.arguments import get_args
@@ -19,8 +19,8 @@ ssim = SSIM()
 
 def train(train_data, test_data, batch_size=128, total_iter=200000, args=None):
     # model = AdaFM(in_nc=3, out_nc=3, args=args)
-    model = MetaMSResNetNoise(in_channels=3, num_filters=64, stages=8, args=args, withSE=True)
-    model.name='MSResNet-3c-8s'
+    model = MetaMSResNetN(in_channels=3, num_filters=64, stages=6, args=args, withSE=True)
+    model.name='MAEB-RES-3c-6s'
     # model.name = 'MAEB-RES-WaterlooBSDSigma055-4stages-ssim{}'.format(args.ssim_weight)
     noise_interval = [0, 55]
     
@@ -38,7 +38,7 @@ def train(train_data, test_data, batch_size=128, total_iter=200000, args=None):
 
     total_epochs = (total_iter*batch_size)//len(train_data)+1
 
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_epochs, eta_min=1e-4)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_epochs, eta_min=1e-5)
  
     ## save checkpoint settings
     save_dir = 'results/dataSize/Noise/{}'.format(model.name)
@@ -139,7 +139,7 @@ def train(train_data, test_data, batch_size=128, total_iter=200000, args=None):
 if __name__ == '__main__':
     args = get_args()
     ### RBSI
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     from random_batch_sampling import RandomBatchSamplingI, RandomBatchDataset
     iterations = 500000
     np.random.seed(0)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     random.seed(0)
 
     train_data = RandomBatchDataset(root_dir='/home/rw/Public/datasets/denoise/WaterlooBSD/', patch_size=64, process_type='noise')
-    test_data = RandomBatchSamplingI(root_dir='/home/rw/Public/datasets/denoise/BSD68', patch_size=64, process_type='noise', channels=3)
+    test_data = RandomBatchSamplingI(root_dir='/home/rw/Public/datasets/denoise/BSD68', patch_size=64, process_type='noise', channels=1)
     train(train_data, test_data, total_iter=iterations, args=args, batch_size=64)
     
 

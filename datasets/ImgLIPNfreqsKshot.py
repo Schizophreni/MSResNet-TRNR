@@ -1,11 +1,17 @@
 """
 files for N-freqs K-shot meta learning
 """
-from datasets.ImgLIPDset import ImgLIPDset
+from ImgLIPDset import ImgLIPDset
 from PIL import Image
 import os
 import numpy as np
 import torchvision.transforms as transforms
+import sys
+sys.path.append('..')
+from utils.clean2noise import clean2rain
+import torchvision.transforms.functional as tvF
+import random
+import torch
 
 
 class ImgLIPNfreqsKshot:
@@ -118,15 +124,15 @@ class ImgLIPNfreqsKshot:
         store several batches for N-freqs learning
         :param dset: dict of (label: img1, img2, ...)
         :return: a list with [spt_set_x, spt_set_y, qry_set_x, qry_set_y]
-        :store 20 batches data for meta learning training or testing
+        :store 20 batches data for meta learning training or testing 
         """
         setsz = self.k_shot*self.n_freqs
         qyrsz = self.k_query*self.n_freqs
         data_cache = []
-
-        for episode in range(1):
+        
+        for episode in range(20):
             spts_x, spts_y, qrys_x, qrys_y = [], [], [], []
-            selected_freqs_each_eposide = np.random.choice(len(dset), (self.n_freqs+1)*self.batch_size, replace=False)
+            selected_freqs_each_eposide = np.random.choice(len(dset), (self.n_freqs+1)*self.batch_size, replace=True)
             for batch in range(self.batch_size):
                 spt_y = np.zeros((setsz, self.imchannel, *self.patch_size)) ## one batch clean data
                 qry_y = np.zeros((qyrsz, self.imchannel, *self.patch_size)) ## one batch clean data
@@ -148,24 +154,24 @@ class ImgLIPNfreqsKshot:
                     if label < self.n_freqs-1:
                         for index, img in enumerate(selected_imgs[self.k_shot:]):
                             qry_y[label*self.k_query+index, ...],qry_x[label*self.k_query+index, ...] = self._tuple_trans(clean_img=img, noise_img=img.replace('clean', 'rain'))
-
+                
                 remain_imgs = np.random.choice(dset[selected_freqs[-1]], self.k_query, False)
                 label = self.n_freqs-1
                 for index, img in enumerate(remain_imgs):
                     qry_y[label*self.k_query+index, ...],qry_x[label*self.k_query+index, ...]= self._tuple_trans(clean_img=img, noise_img=img.replace('clean', 'rain'))
-
+                
                 spts_x.append(spt_x)
                 spts_y.append(spt_y)
                 qrys_x.append(qry_x)
                 qrys_y.append(qry_y)
-
+            
             spts_x = np.array(spts_x).astype('f4') ## [b, setsz, c, h, w]
             spts_y = np.array(spts_y).astype('f4')
             qrys_x = np.array(qrys_x).astype('f4')
             qrys_y = np.array(qrys_y).astype('f4')
             data_cache.append([spts_x, spts_y, qrys_x, qrys_y])
         return data_cache
-
+    
     def next(self, mode='train'):
         """
         Gets next batch from the dataset with mode
@@ -178,59 +184,4 @@ class ImgLIPNfreqsKshot:
         next_batch = self.datasets_cache[mode][self.indexes[mode]]
         self.indexes[mode] += 1
         return next_batch
-
-def clean2noisy(x, sigmas):
-    """
-    generate noisy image from clean image
-    :param x: shape of [setsz, c, h, w]
-    :sigmas: tuple of sigma like (5, 10, 15, 20)
-    :return: noisy + x
-    """
-    tmp = np.zeros_like(x)
-
-    for idx in range(x.shape[0]):
-        sigma = np.random.choice(sigmas)
-        tmp[idx, ...] = np.random.randn(x.shape[1], x.shape[2], x.shape[3])*(sigma/255.0)
-    return tmp+x
-
-
-def main():
-    import time
-    import torch
-    import matplotlib.pyplot as plt
-    root_dir = '../MetaLIP/data/ProcessData/Rain100L-60-multi-merge'
-    bsz = 4
-    n_freqs = 5
-    k_shot = 1
-    k_query = 1
-    db = ImgLIPNfreqsKshot(root_dir=root_dir, batch_size=bsz, n_freqs=n_freqs, k_shot=k_shot, k_query=k_query, patch_size=50)
-    spts_x, spts_y, qrys_x, qrys_y = db.next(mode='test')
-    print(spts_x.shape, spts_y.shape)
-    print(qrys_x.shape, qrys_y.shape)
-    '''
-    for j in range(bsz):
-        for i in range(n_freqs):
-            plt.figure(1)
-            ax1 = plt.subplot(2, 2, 1)
-            ax2 = plt.subplot(2, 2, 2)
-            ax3 = plt.subplot(2, 2, 3)
-            ax4 = plt.subplot(2, 2, 4)
-            plt.sca(ax1)
-            plt.imshow(spts_x[j, i].transpose(1, 2, 0))
-            plt.sca(ax2)
-            plt.imshow(spts_y[j, i].transpose(1, 2, 0))
-            plt.sca(ax3)
-            plt.imshow(qrys_x[j, i].transpose(1, 2, 0))
-            plt.sca(ax4)
-            plt.imshow(qrys_y[j, i].transpose(1, 2, 0))
-            plt.show()
-        '''
-
-
-if __name__ == '__main__':
-    main()
-        
-
-
-
-        
+    

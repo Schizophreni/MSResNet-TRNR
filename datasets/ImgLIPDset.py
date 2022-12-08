@@ -56,16 +56,24 @@ class TestDataset(data.Dataset):
         else:
             self.clean_dir = kwargs['clean_dir']
             self.sigmas = kwargs['sigmas']
+        self.name = kwargs['dataset']
         self.clean_format, self.noise_format, self.total_sampels, self.begin_idx = dataset_config[kwargs['dataset']]
     
     def __getitem__(self, index):
         if self.type != 'noise':
-            clean_img = os.path.join(self.clean_dir, self.clean_format.format(index+self.begin_idx))
-            noise_img = os.path.join(self.noise_dir, self.noise_format.format(index+self.begin_idx))
-            # print(clean_img, noise_img)
+            if 'Rain1400' not in self.name:
+                clean_img = os.path.join(self.clean_dir, self.clean_format.format(index+self.begin_idx))
+                noise_img = os.path.join(self.noise_dir, self.noise_format.format(index+self.begin_idx))
+                # print(clean_img, noise_img)
+            else:
+                img_idx = index // 14
+                aug_idx = index % 14 + 1 
+                clean_img = os.path.join(self.clean_dir, self.clean_format.format(img_idx+self.begin_idx))
+                noise_img = os.path.join(self.noise_dir, self.noise_format.format(img_idx+self.begin_idx, aug_idx))
             clean_img, noise_img = Image.open(clean_img), Image.open(noise_img)
             clean_img = np.transpose(clean_img, (2, 0, 1))/255.0
             noise_img = np.transpose(noise_img, (2, 0, 1))/255.0
+
         else:
             clean_img = os.path.join(self.clean_dir, self.clean_format.format(index+self.begin_idx))
             clean_img = Image.open(clean_img)
@@ -79,17 +87,4 @@ class TestDataset(data.Dataset):
     def __len__(self):
         return self.total_sampels
 
-
-def main():
-    """
-    used to test ImgLIPDset 
-    """
-    dset = ImgLIPDset(r'../MetaLIP/patches/', mode='test')
-    for img, label in sorted(list(dset))[:100]:
-        print(img, label)
-        pass
-
-
-if __name__ == '__main__':
-    main() 
             

@@ -151,11 +151,8 @@ class MergeAllIngredients:
         for epoch in range(begin_epoch, total_epochs):
             start_iter = self.state['current_iter']
             end_iter = (start_iter // self.iters_per_epoch+1)*self.iters_per_epoch
-            # if self.state['current_iter'] in [5000, 25000]:
-            #     self.model.update_lr.data = self.model.update_lr.data/2.0
             with tqdm.tqdm(initial=start_iter, total=self.iters_per_epoch, ncols=120) as pbar_train:
                 for iteration in range(start_iter, end_iter):
-                    # self.test_imgs(pbar=pbar_train)
                     train_batch = self.database.next(mode='train')
                     if self.state['current_iter'] % self.args.iters_every_bar == 0:
                         self.state['current_iter'] = self.train_iteration(train_batch=train_batch, current_iter=self.state['current_iter'],
@@ -165,16 +162,6 @@ class MergeAllIngredients:
                                                                         pbar_train=pbar_train, calc_metrics=False)
                     if self.state['current_iter'] % self.args.iters_every_test == 0:
                         ## run test
-                        '''
-                        avg_psnrs = []
-                        # with tqdm.tqdm(total=self.args.num_evaluation_tasks//self.args.task_num+1) as pbar_val:
-                        
-                            for _ in range(self.args.num_evaluation_tasks//self.args.task_num+1):
-                                test_batch = self.database.next(mode='test')
-                                psnr_vals = self.test_iteration(test_batch=test_batch, pbar_test=pbar_val, calc_metrics=True)
-                                avg_psnrs.append(np.array(psnr_vals).mean())
-                            avg_psnr = np.array(avg_psnrs).mean()
-                            '''
                         with tqdm.tqdm(total=len(self.test_dataset)) as pbar_val:
                             avg_ssim, avg_psnr = self.test_imgs(pbar_val)
                         if (avg_psnr >= self.state['best_val_psnr']):
@@ -185,16 +172,11 @@ class MergeAllIngredients:
                                                 state=self.state)
                         self.save_models(model_path=os.path.join(self.save_model_folder, 'latest.tar'), state=self.state)
                         self.model.init_attenuate_weight()
-                    #if self.state['current_iter'] % 500 == 0:
-                    #    self.save_models(model_path=os.path.join(self.save_model_folder, '{}-iterModel.tar'.format(self.state['current_iter'])),
-                    #                            state=self.state)
-                    #    self.model.init_attenuate_weight()
                     
 if __name__ == '__main__':
     from utils.arguments import get_args
+    # from datasets.ImgLIPNfreqsKshot_Rain200L import ImgLIPNfreqsKshot (for Rain200L, Rain200H, Rain1400)
     from datasets.ImgLIPNfreqsKshot import ImgLIPNfreqsKshot
-    # from ImportantSampling import ImgLIPNfreqsKshot
-    # from ImgLIPNfreqsKshotNoise import ImgLIPNfreqsKshot
     from models.nets import MetaMSResNet
     from models.metaunit import MetaUnit
     from datasets.ImgLIPDset import TestDataset
