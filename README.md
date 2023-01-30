@@ -1,4 +1,4 @@
-# TRNR (making up ... , not the final edition)
+# TRNR
 #### The pytorch implementation of "Task-driven Image Deraining and Denoising with a Few Images Based on Patch Analysis"
 
 * An overview of the task-driven learning approach.
